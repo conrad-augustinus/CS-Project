@@ -61,20 +61,20 @@ def generate_forest(num_trees):
     for _ in range(num_trees):
         x = np.random.rand()
         y = np.random.rand()
-        tree = {'x': x, 'y': y}
+        tree = {"x": x, "y": y}
         forest.append(tree)
     return forest
 
 def plot_forest(forest):
     fig, ax = plt.subplots()
     for tree in forest:
-        ax.scatter(tree['x'], tree['y'], marker='^', s=50, color='green')
+        ax.scatter(tree["x"], tree["y"], marker="^", s=50, color="green")
 
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
-    ax.set_aspect('equal', adjustable='box')
+    ax.set_aspect("equal", adjustable="box")
 
-    ax.axis('off')
+    ax.axis("off")
 
     st.pyplot(fig)
 
@@ -108,19 +108,19 @@ def plot_total_emissions(footprint_manager):
     non_zero_emissions = [emissions for emissions in total_emissions_data if emissions > 0]
 
     fig, ax = plt.subplots()
-    ax.plot(non_zero_years, non_zero_emissions, marker='o', linestyle='-', color='g')
-    ax.set_xlabel('Year')
-    ax.set_ylabel('Total Emissions (in tCO2eq)')
-    ax.set_title('Total Emissions Over the Years')
+    ax.plot(non_zero_years, non_zero_emissions, marker="o", linestyle="-", color="g")
+    ax.set_xlabel("Year")
+    ax.set_ylabel("Total Emissions (in tCO2eq)")
     st.pyplot(fig)
 
 def main_menu(footprint_manager):
-    st.title("Carbon Footprint Tracker")
+    st.sidebar.title("Carbon Footprint Tracker")
     options = ["Add/Update Values", "Display Emissions", "Plot Total Emissions"]
 
     choice = st.sidebar.selectbox("Select Option", options)
 
     if choice == "Add/Update Values":
+        st.title("Add/Update Values")
         year = st.selectbox("Choose Year", list(range(2010, 2050)))
         sector = st.selectbox("Choose Sector", list(footprint_manager.sectors.keys()))
         st.session_state.selected_sector = sector
@@ -128,6 +128,7 @@ def main_menu(footprint_manager):
             footprint_manager.input_value(sector, use_case, year)
 
     elif choice == "Display Emissions":
+        st.title("Display Emissions")
         selected_year = st.selectbox("Choose Year", list(range(2010, 2050)))
         total_emissions = footprint_manager.total_emissions_by_year(selected_year)
         st.subheader(f"Total Emissions for {selected_year}: {total_emissions} tCO2eq")
@@ -135,6 +136,7 @@ def main_menu(footprint_manager):
         footprint_manager.display_values(sector, selected_year)
 
     elif choice == "Plot Total Emissions":
+        st.title("Plot Total Emissions")
         plot_total_emissions(footprint_manager)
 
 if __name__ == "__main__":
