@@ -336,20 +336,23 @@ class Footprint:
                     total_emissions += st.session_state[sector][use_case][year]
         return total_emissions
 
-    def display_values(self, sector, selected_year):
+     def display_values(self, sector, selected_year):
         if sector in self.sectors:
             total = 0
             for use_case, year_values in st.session_state.get(sector, {}).items():
-                value = year_values.get(selected_year, 0)
-                benchmark = self.benchmark[sector][use_case]
+                value = year_values.get(selected_year, 0.0)
+                benchmark = float(self.benchmark[sector].get(use_case, 0.0))
                 st.write(f"{use_case}: {value} (Standard Emissions: {benchmark})")
-
-                if value > benchmark:
-                    st.warning(f"  - Excess Emissions compared to Standard of {value - benchmark} tCO2eq")
-                elif value < benchmark:
-                    st.success(f"  - Below Standard Emissions by {benchmark - value} tCO2eq")
-
-                total += value
+                try:
+                    value_float = float(value)
+                    benchmark_float = float(benchmark)
+                    if value_float > benchmark_float:
+                        st.warning(f"  - Excess Emissions compared to Standard of {value_float - benchmark_float} tCO2eq")
+                    elif value_float < benchmark_float:
+                        st.success(f"  - Below Standard Emissions by {benchmark_float - value_float} tCO2eq")
+                except ValueError:
+                    st.error(f"Error: Non-numeric value encountered for {use_case}.")
+                total += value_float
 
             st.write(f"Total Emissions for {sector}: {total} tCO2eq")
             st.caption("Benchmark Approximation Source: https://data.europa.eu/doi/10.2760/028705")
@@ -359,6 +362,7 @@ class Footprint:
             forest = generate_forest(num_trees)
             plot_forest(forest)
             st.caption("Approximately 45 Trees per Ton of GHGs Emitted")
+
 def generate_forest(num_trees):
     forest = []
     for _ in range(num_trees):
