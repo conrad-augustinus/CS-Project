@@ -20,6 +20,309 @@ class Footprint:
                 st.session_state.setdefault(sector, {}).setdefault(use_case, {})[year] = value
                 self.value[sector][use_case][year] = value
 
+    def input_value_too(self, sector, use_case, year):
+        use_cases = self.sectors.get(sector, [])
+        for use_case in use_cases:
+            if use_case == "Electricity":
+                creading_key = f"{sector}_{use_case}_{year}_creading"
+                preading_key = f"{sector}_{use_case}_{year}_preading"
+                creading = st.number_input("What is the current reading on the electricity counter (Kwh/year):", key=creading_key)
+                preading = st.number_input("What was the last reading on the electricity counter (Kwh/year):", key=preading_key)
+                url = f"https://api.carbonkit.net/3.6/categories/electricity/calculation?country=Switzerland&values.currentReading={creading}&values.lastReading={preading}"
+                headers = {
+                    "Accept": "application/xml",
+                    "Authorization": "Basic " + base64.b64encode(b"AC221:fozzie7").decode("utf-8")
+                }
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    try:
+                        root = ET.fromstring(response.content)
+                        amount_element = root.find('.//Amount')
+                        if amount_element is not None:
+                            amount_text = amount_element.text
+                            amount_value = float(amount_text)
+                            value = st.write(f"Value for {use_case} in tCO2eq for {year}: {amount_value}")
+                            st.session_state.setdefault(sector, {}).setdefault(use_case, {})[year] = value
+                            self.value[sector][use_case][year] = value
+                        else:
+                            st.error('Amount element not found in the XML response.')
+                            amount_value = 0
+                    except ET.ParseError as e:
+                        st.error(f"XML parse error: {e}")
+                    except ValueError as e:
+                        st.error(f"Value error: Could not convert {amount_text} to float. {e}")
+                else:
+                    st.error(f"Received response code {response.status_code}: {response.content}")
+            elif use_case == "Fuel Combustion":
+                fueltype_key = f"{sector}_{use_case}_{year}_fueltype"
+                fuelvolume_key = f"{sector}_{use_case}_{year}_fuelvolume"
+                fueltype = st.selectbox("Select an option for Fuel Combustion", ["Diesel", "Petrol", "Gas oil", "Natural Gas", "Coal (industrial)", "Burning Oil"], key=fueltype_key)
+                fuelvolume = st.number_input("What volume of it have you used (net):", key=fuelvolume_key)
+                url = f"https://api.carbonkit.net/3.6/categories/Fuel_Defra/calculation?fuel={fueltype}&netOrGross=net&unit=volume&values.volume={fuelvolume}"
+                headers = {
+                    "Accept": "application/xml",
+                    "Authorization": "Basic " + base64.b64encode(b"AC221:fozzie7").decode("utf-8")
+                }
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    try:
+                        root = ET.fromstring(response.content)
+                        amount_element = root.find('.//Amount')
+                        if amount_element is not None:
+                            amount_text = amount_element.text
+                            amount_value = float(amount_text)
+                            value = st.write(f"Value for {use_case} in tCO2eq for {year}: {amount_value}")
+                            st.session_state.setdefault(sector, {}).setdefault(use_case, {})[year] = value
+                            self.value[sector][use_case][year] = value
+                        else:
+                            st.error('Amount element not found in the XML response.')
+                            amount_value = 0
+                    except ET.ParseError as e:
+                        st.error(f"XML parse error: {e}")
+                    except ValueError as e:
+                        st.error(f"Value error: Could not convert {amount_text} to float. {e}")
+                else:
+                    st.error(f"Received response code {response.status_code}: {response.content}")
+            elif use_case == "Transport by Bus":
+                busdist_key = f"{sector}_{use_case}_{year}_busdist"
+                busdist = st.number_input("What distance was traveled by bus (km):", key=busdist_key)
+                url = f"https://api.carbonkit.net/3.6/categories/Generic_bus_transport/calculation?type=typical&values.distance={busdist}"
+                headers = {
+                    "Accept": "application/xml",
+                    "Authorization": "Basic " + base64.b64encode(b"AC221:fozzie7").decode("utf-8")
+                }
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    try:
+                        root = ET.fromstring(response.content)
+                        amount_element = root.find('.//Amount')
+                        if amount_element is not None:
+                            amount_text = amount_element.text
+                            amount_value = float(amount_text)
+                            value = st.write(f"Value for {use_case} in tCO2eq for {year}: {amount_value}")
+                            st.session_state.setdefault(sector, {}).setdefault(use_case, {})[year] = value
+                            self.value[sector][use_case][year] = value
+                        else:
+                            st.error('Amount element not found in the XML response.')
+                            amount_value = 0
+                    except ET.ParseError as e:
+                        st.error(f"XML parse error: {e}")
+                    except ValueError as e:
+                        st.error(f"Value error: Could not convert {amount_text} to float. {e}")
+                else:
+                    st.error(f"Received response code {response.status_code}: {response.content}")
+            elif use_case == "Transport by Ship":
+                shipdist_key = f"{sector}_{use_case}_{year}_shipdist"
+                shipdist = st.number_input("What distance was traveled by ship (km):", key=shipdist_key)
+                url = f"https://api.carbonkit.net/3.6/categories/Generic_ship_transport/calculation?type=ferry&values.distance={shipdist}"
+                headers = {
+                    "Accept": "application/xml",
+                    "Authorization": "Basic " + base64.b64encode(b"AC221:fozzie7").decode("utf-8")
+                }
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    try:
+                        root = ET.fromstring(response.content)
+                        amount_element = root.find('.//Amount')
+                        if amount_element is not None:
+                            amount_text = amount_element.text
+                            amount_value = float(amount_text)
+                            value = st.write(f"Value for {use_case} in tCO2eq for {year}: {amount_value}")
+                            st.session_state.setdefault(sector, {}).setdefault(use_case, {})[year] = value
+                            self.value[sector][use_case][year] = value
+                        else:
+                            st.error('Amount element not found in the XML response.')
+                            amount_value = 0
+                    except ET.ParseError as e:
+                        st.error(f"XML parse error: {e}")
+                    except ValueError as e:
+                        st.error(f"Value error: Could not convert {amount_text} to float. {e}")
+                else:
+                    st.error(f"Received response code {response.status_code}: {response.content}")
+            elif use_case == "Transport by Plane":
+                planedist_key = f"{sector}_{use_case}_{year}_planedist"
+                planedist = st.number_input("What distance was traveled by plane (km):", key=planedist_key)
+                url = f"https://api.carbonkit.net/3.6/categories/Generic_plane_transport/calculation?type=domestic&size=return&values.distance={planedist}"
+                headers = {
+                    "Accept": "application/xml",
+                    "Authorization": "Basic " + base64.b64encode(b"AC221:fozzie7").decode("utf-8")
+                }
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    try:
+                        root = ET.fromstring(response.content)
+                        amount_element = root.find('.//Amount')
+                        if amount_element is not None:
+                            amount_text = amount_element.text
+                            amount_value = float(amount_text)
+                            value = st.write(f"Value for {use_case} in tCO2eq for {year}: {amount_value}")
+                            st.session_state.setdefault(sector, {}).setdefault(use_case, {})[year] = value
+                            self.value[sector][use_case][year] = value
+                        else:
+                            st.error('Amount element not found in the XML response.')
+                            amount_value = 0
+                    except ET.ParseError as e:
+                        st.error(f"XML parse error: {e}")
+                    except ValueError as e:
+                        st.error(f"Value error: Could not convert {amount_text} to float. {e}")
+                else:
+                    st.error(f"Received response code {response.status_code}: {response.content}")
+            elif use_case == "Transport by Car":
+                carfueltype_key = f"{sector}_{use_case}_{year}_carfueltype"
+                carsize_key = f"{sector}_{use_case}_{year}_carsize"
+                cardistance_key = f"{sector}_{use_case}_{year}_cardistance"
+                carfueltype = st.selectbox("What does the car run on", ["petrol", "diesel"], key=carfueltype_key)
+                carsize = st.selectbox("What size is the car", ["small", "medium", "large"], key=carsize_key)
+                cardistance = st.number_input("What distance did you travel by car", key=cardistance_key)
+                url = f"https://api.carbonkit.net/3.6/categories/Generic_car_transport/calculation?fuel={carfueltype}&size={carsize}&values.distance={cardistance}"
+                headers = {
+                    "Accept": "application/xml",
+                    "Authorization": "Basic " + base64.b64encode(b"AC221:fozzie7").decode("utf-8")
+                }
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    try:
+                        root = ET.fromstring(response.content)
+                        amount_element = root.find('.//Amount')
+                        if amount_element is not None:
+                            amount_text = amount_element.text
+                            amount_value = float(amount_text)
+                            value = st.write(f"Value for {use_case} in tCO2eq for {year}: {amount_value}")
+                            st.session_state.setdefault(sector, {}).setdefault(use_case, {})[year] = value
+                            self.value[sector][use_case][year] = value
+                        else:
+                            st.error('Amount element not found in the XML response.')
+                            amount_value = 0
+                    except ET.ParseError as e:
+                        st.error(f"XML parse error: {e}")
+                    except ValueError as e:
+                        st.error(f"Value error: Could not convert {amount_text} to float. {e}")
+                else:
+                    st.error(f"Received response code {response.status_code}: {response.content}")
+            elif use_case == "Transport by Taxi":
+                taxdist_key = f"{sector}_{use_case}_{year}_taxdist"
+                taxdist = st.number_input("What distance was traveled by taxi", key=taxdist_key)
+                url = f"https://api.carbonkit.net/3.6/categories/Generic_taxi_transport/calculation?values.distance={taxdist}"
+                headers = {
+                    "Accept": "application/xml",
+                    "Authorization": "Basic " + base64.b64encode(b"AC221:fozzie7").decode("utf-8")
+                }
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    try:
+                        root = ET.fromstring(response.content)
+                        amount_element = root.find('.//Amount')
+                        if amount_element is not None:
+                            amount_text = amount_element.text
+                            amount_value = float(amount_text)
+                            value = st.write(f"Value for {use_case} in tCO2eq for {year}: {amount_value}")
+                            st.session_state.setdefault(sector, {}).setdefault(use_case, {})[year] = value
+                            self.value[sector][use_case][year] = value
+                        else:
+                            st.error('Amount element not found in the XML response.')
+                            amount_value = 0
+                    except ET.ParseError as e:
+                        st.error(f"XML parse error: {e}")
+                    except ValueError as e:
+                        st.error(f"Value error: Could not convert {amount_text} to float. {e}")
+                else:
+                    st.error(f"Received response code {response.status_code}: {response.content}")
+            elif use_case == "Biological Waste Treatment":
+                btype_key = f"{sector}_{use_case}_{year}_btype"
+                qtmethane_key = f"{sector}_{use_case}_{year}_qtmethane"
+                qttreatment_key = f"{sector}_{use_case}_{year}_qttreatment"
+                btype = st.selectbox("What kind of composting are you using", ["Anaerobic Digestion", "Composting"], key=btype_key)
+                qtmethane = st.number_input("What quantity of methane was recovered (in Gg):", key=qtmethane_key)
+                qttreatment = st.number_input("How much waste was treated (in Gg):", key=qttreatment_key)
+                url = f"https://api.carbonkit.net/3.6/categories/biological_waste_treatment/calculation?type={btype}&values.recoveredMethane={qtmethane}&values.mass={qttreatment}"
+                headers = {
+                    "Accept": "application/xml",
+                    "Authorization": "Basic " + base64.b64encode(b"AC221:fozzie7").decode("utf-8")
+                }
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    try:
+                        root = ET.fromstring(response.content)
+                        amount_element = root.find('.//Amount')
+                        if amount_element is not None:
+                            amount_text = amount_element.text
+                            amount_value = float(amount_text)
+                            value = st.write(f"Value for {use_case} in tCO2eq for {year}: {amount_value}")
+                            st.session_state.setdefault(sector, {}).setdefault(use_case, {})[year] = value
+                            self.value[sector][use_case][year] = value
+                        else:
+                            st.error('Amount element not found in the XML response.')
+                            amount_value = 0
+                    except ET.ParseError as e:
+                        st.error(f"XML parse error: {e}")
+                    except ValueError as e:
+                        st.error(f"Value error: Could not convert {amount_text} to float. {e}")
+                else:
+                    st.error(f"Received response code {response.status_code}: {response.content}")
+            elif use_case == "Industrial Waste Combustion":
+                ind_key = f"{sector}_{use_case}_{year}_ind"
+                qtburned_key = f"{sector}_{use_case}_{year}_qtburned"
+                ind = st.selectbox("What industry are you in?", ["food/beverages/tobacco", "textile", "wood/wood products", "pulp and paper", "rubber", "petroleum products/solvents/plastics", "construction and demolition", "other"], key=ind_key)
+                qtburned = st.number_input("What quantity was burned (in tonnes)", key=qtburned_key)
+                url = f"https://api.carbonkit.net/3.6/categories/Industrial_waste_combustion/calculation?industry={ind}&values.mass={qtburned}"
+                headers = {
+                    "Accept": "application/xml",
+                    "Authorization": "Basic " + base64.b64encode(b"AC221:fozzie7").decode("utf-8")
+                }
+                response = requests.get(url, headers=headers)
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    try:
+                        root = ET.fromstring(response.content)
+                        amount_element = root.find('.//Amount')
+                        if amount_element is not None:
+                            amount_text = amount_element.text
+                            amount_value = float(amount_text)
+                            value = st.write(f"Value for {use_case} in tCO2eq for {year}: {amount_value}")
+                            st.session_state.setdefault(sector, {}).setdefault(use_case, {})[year] = value
+                            self.value[sector][use_case][year] = value
+                        else:
+                            st.error('Amount element not found in the XML response.')
+                            amount_value = 0
+                    except ET.ParseError as e:
+                        st.error(f"XML parse error: {e}")
+                    except ValueError as e:
+                        st.error(f"Value error: Could not convert {amount_text} to float. {e}")
+                else:
+                    st.error(f"Received response code {response.status_code}: {response.content}")
+            elif use_case == "Livestock":
+                ltype_key = f"{sector}_{use_case}_{year}_ltype"
+                region_key = f"{sector}_{use_case}_{year}_region"
+                lsize_key = f"{sector}_{use_case}_{year}_lsize"
+                ltype = st.selectbox("What type of livestock do you own", ["Dairy cattle", "Other Cattle", "Buffalo", "sheep", "Goats", "Camels", "Horses", "Mules/Asses", "Deer", "Alpacas", "Swine"], key=ltype_key)
+                region = st.selectbox("What region is it from (Specify region for cattle and developed country for others)", ["North America", "Eastern Europe", "Western Europe", "Oceania", "Latin America", "Asia", "Africa and Middle East", "Indian Subcontinent", "Developed Countries", "Developing Countries"], key=region_key)
+                lsize = st.number_input("How many do you own:", key=lsize_key)
+                url = f"https://api.carbonkit.net/3.6/categories/Enteric_fermentation/livestockType={ltype}&region={region}&values.livestockNumber={lsize}"
+                headers = {
+                    "Accept": "application/xml",
+                    "Authorization": "Basic " + base64.b64encode(b"AC221:fozzie7").decode("utf-8")
+                }
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    try:
+                        root = ET.fromstring(response.content)
+                        amount_element = root.find('.//Amount')
+                        if amount_element is not None:
+                            amount_text = amount_element.text
+                            amount_value = float(amount_text)
+                            value = st.write(f"Value for {use_case} in tCO2eq for {year}: {amount_value}")
+                            st.session_state.setdefault(sector, {}).setdefault(use_case, {})[year] = value
+                            self.value[sector][use_case][year] = value
+                        else:
+                            st.error('Amount element not found in the XML response.')
+                            amount_value = 0
+                    except ET.ParseError as e:
+                        st.error(f"XML parse error: {e}")
+                    except ValueError as e:
+                        st.error(f"Value error: Could not convert {amount_text} to float. {e}")
+                else:
+                    st.error(f"Received response code {response.status_code}: {response.content}")
+
     def emission_benchmark(self, sector, use_case, value):
         if sector in self.benchmark and use_case in self.sectors[sector]:
             self.benchmark[sector][use_case] = value
